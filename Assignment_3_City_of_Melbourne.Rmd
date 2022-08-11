@@ -1,0 +1,123 @@
+---
+title: "Assignment3-MelbourneCity"
+author: "Phuong Tang Thanh PHAM"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r library, message=FALSE}
+library(readxl) # for reading excel files
+library(dplyr)
+library(magrittr) # for pipes
+```
+
+
+Import the 3 datasets
+https://data.melbourne.vic.gov.au/stories/s/CLUE/rt3z-vy3t?src=hdr
+
+These datasets are parts of the CLUE Open Data (The Census of Land Use and Employment) of City of Melbourne that provides infomation about land use, emplopyment and economic activity across the City of Melbourne. Here I will use 4 datasets in total, including the following :
+
+*Dataset 1: Victorian Property Sales Report - Median House by Suburb Time Series*
+https://discover.data.vic.gov.au/dataset/victorian-property-sales-report-median-house-by-suburb-time-series1
+
+The data is compiled using information lodged every time a property sale is completed. It provides property statistics for Victoria's 79 municipalities and yearly medians by suburb over a ten-year period (2010 - 2020)
+
+
+*Dataset 2: Residential Dwellings - City of Melbourne*
+https://data.melbourne.vic.gov.au/Property/Residential-dwellings/44kh-ty54
+
+The data covers the period 2002-2020.
+It is based on the Council's property rates database, using a simplified classification schema of Residential Apartment, House/Townhouse and Student Apartment. The count of dwellings per residential building is shown.
+
+
+*Datset 3: Cafes and restaurants - City of Melbourne*
+https://data.melbourne.vic.gov.au/Business/Cafes-and-restaurants-with-seating-capacity/xt2y-tnn9
+
+The data covers the period 2002-2020. 
+It shows business establishments with their business address, industry (ANZSIC4) classification, number of dining seats (classified by indoor/outdoor), location and CLUE block and small area designation.
+
+*Datset 4: Social Indicators for City of Melbourne Residents*
+https://data.melbourne.vic.gov.au/People/Social-Indicators-for-City-of-Melbourne-Residents-/n9ie-cp6t
+https://data.melbourne.vic.gov.au/People/Social-Indicators-for-City-of-Melbourne-Residents-/y7km-5r6f
+https://data.melbourne.vic.gov.au/People/Social-Indicators-for-City-of-Melbourne-Residents-/x4k3-uj4j
+
+The survey collects data about the state of health, well-being, participation and connection of communities in the Melbourne Local Government Area, primarily to report on key Council Plan 2017-21 municipal outcome indicators.
+
+These datasets provide indicator results of telephone and online surveys. Data is divided into suburb, gender and age groups and has been weighted according to population proportions. 
+
+Responses such as don't know, not sure, not applicable etc. were excluded in the calculation of indicators. The sample sizes shown reflect this accordingly.
+
+The City of Melbourne Social Indicators Survey (CoMSIS) was conducted for the first time in 2018 so I will get data from 3 separate reports for each year: 2018, 2019 and 2020. This new survey program replaces the previous Future Melbourne surveys so I would need to find another report for the Future Melbourne so we can get the data for all the years before 2018.
+
+*Dataset 5: Indicators of wellbeing by year (Future Melbourne)*
+https://data.melbourne.vic.gov.au/People/Indicators-of-wellbeing-by-year-Future-Melbourne-/khvg-gtaq
+
+This is the only report I can find for the Future Melbourne Community Plan. The data covers the period 2012-2016.This report also use a similar framework including indicators for personal wellbeing and social connection, however it has not been grouped into suburbs so we will have to work around with the number we have.
+
+
+
+The theoretical scenario here is that I would like to purchase a property in the City of Melbourne but not sure where would be the best location to invest in. My priorities for my decision is the number of Cafes and Restaurants around the area, as I do not cook frequently. I also concern about my general safety and the quality of life in the area.
+
+First of all I will load these datasets into RStudio and pre-process them before joining them all-together.
+
+````{r reading}
+median_house_price <- read_excel("A3-CityofMelbourne/Suburb_Housev4_14May2021.xls", skip = 1)
+dwellings <- read.csv("A3-CityofMelbourne/Residential_dwellings.csv")
+facilities <- read.csv("A3-CityofMelbourne/Cafes_and_restaurants__with_seating_capacity.csv")
+social_ind_2018 <- read.csv("A3-CityofMelbourne/Social_Indicators_for_City_of_Melbourne_Residents_2018.csv")
+social_ind_2019 <- read.csv("A3-CityofMelbourne/Social_Indicators_for_City_of_Melbourne_Residents_2019.csv")
+social_ind_2020 <- read.csv("A3-CityofMelbourne/Social_Indicators_for_City_of_Melbourne_Residents_2020.csv")
+wellbeing_ind <- read.csv("A3-CityofMelbourne/Indicators_of_wellbeing_by_year__Future_Melbourne_.csv")
+
+```
+
+#### Median House Price
+We will need to remove the first row as it should be a part of the header and only extract the suburbs that belong to City of Melbourne. According to the council home page, it has 12 suburbs: Carlton, Docklands, East Melbourne, Kensington, Flemington, Melbourne, North Melbourne, Parkville, Port Melbourne, Southbank, South Yarra and West Melbourne. 
+
+
+````{r reading}
+head(median_house_price)
+
+# remove first row, only take column 1st to 11th, equivalent to year 2010 to 2020
+median_house_price <- as.data.frame(median_house_price[-1,c(1:11)])
+
+# change 1st column name to Area
+colnames(median_house_price)[1] <- "Area"
+
+# filter on 12 City of Melbourne suburbs
+cob_suburbs <- c("Carlton", "Docklands", "East Melbourne", "Kensington", "Flemington", "Melbourne", "North Melbourne", "Parkville", "Port Melbourne", "Southbank", "South Yarra", "West Melbourne")
+
+median_house_price %>% 
+  filter(tolower(Area) %in% cob_suburbs)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
