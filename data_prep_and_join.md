@@ -155,4 +155,6 @@ social_ind %<>%
 city_of_melbourne <- social_ind %>%
   full_join(facilities, by = c("Year", "Suburb")) %>%
   left_join(median_house_price, by = c("Year", "Suburb"))
+
+write.csv(city_of_melbourne, file = "city_of_melbourne.csv")
 ```
