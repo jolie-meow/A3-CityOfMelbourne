@@ -4,11 +4,15 @@ Jolie Pham
 2023-01-02
 
 ``` r
-library(dplyr) # For wrangling data
+library(dplyr)    # For wrangling data
 library(magrittr) # For pipes 
+library(stringr)
 library(tidyr)
-library(here)
+library(readxl)
+library(ggplot2)
 library(Hmisc)
+library(forecast)
+library(here)
 ```
 
 ``` r
@@ -137,3 +141,198 @@ city_of_melbourne$Median_Price[is.na(
   city_of_melbourne$Median_Price)] <- median(
     city_of_melbourne$Median_Price, na.rm = TRUE)
 ```
+
+## Outliers.
+
+#### Transform Median Price
+
+``` r
+median_price_outliers = boxplot(city_of_melbourne$Median_Price, 
+                                horizontal = TRUE)
+```
+
+![](handle_NA_files/figure-gfm/outliers%20in%20Median_Price-1.png)<!-- -->
+
+``` r
+par(mfrow = c(2,2))
+
+# original median price
+hist(city_of_melbourne$Median_Price, main = "Median Price") 
+qqnorm(city_of_melbourne$Median_Price)
+qqline(city_of_melbourne$Median_Price)
+
+# base e log transformation
+log_median_price <-log(city_of_melbourne$Median_Price)
+hist(log_median_price, main = "Log Transformation \nof Median Price")
+qqnorm(log_median_price)
+qqline(log_median_price)
+```
+
+![](handle_NA_files/figure-gfm/tranform%20median%20price-1.png)<!-- -->
+
+``` r
+# square root transformation
+sqrt_median_price <- sqrt(city_of_melbourne$Median_Price)
+hist(sqrt_median_price, main = "Squareroot Transformation \nof Median Price") 
+qqnorm(sqrt_median_price)
+qqline(sqrt_median_price)
+
+# Box-Cox transformation
+boxcox_median_price <- BoxCox(city_of_melbourne$Median_Price, lambda = "auto")
+hist(boxcox_median_price, main = "Box-Cox Transformation \nof Median Price")
+qqnorm(boxcox_median_price)
+qqline(boxcox_median_price)
+```
+
+![](handle_NA_files/figure-gfm/tranform%20median%20price-2.png)<!-- -->
+
+``` r
+shapiro.test(log_median_price)
+```
+
+    ## 
+    ##  Shapiro-Wilk normality test
+    ## 
+    ## data:  log_median_price
+    ## W = 0.87994, p-value = 5.255e-06
+
+``` r
+shapiro.test(boxcox_median_price)
+```
+
+    ## 
+    ##  Shapiro-Wilk normality test
+    ## 
+    ## data:  boxcox_median_price
+    ## W = 0.62888, p-value = 3.339e-12
+
+#### Facilities
+
+``` r
+city_of_melbourne %<>%
+  mutate(Total_Facilities = Cafes_Restaurants + Takeaway_Food) 
+
+par(mfrow=c(2,2))
+boxplot(city_of_melbourne$Cafes_Restaurants, horizontal = TRUE,
+        main = "Number of \nCafes and Restaurants")
+boxplot(city_of_melbourne$Takeaway_Food, horizontal = TRUE,
+        main = "Number of \nTakeaway Food Services")
+
+facilities_outliers <- boxplot(city_of_melbourne$Total_Facilities,
+                              horizontal = TRUE,
+                              main = "Total Facilities in \nCity of Melbourne")$out
+city_of_melbourne %>%
+  filter(Total_Facilities %in% facilities_outliers) %>%
+  dplyr::select(Suburb, Year, Total_Facilities)
+```
+
+    ##      Suburb Year Total_Facilities
+    ## 1 Melbourne 2018             1831
+    ## 2 Melbourne 2018             1831
+    ## 3 Melbourne 2019             1814
+    ## 4 Melbourne 2019             1814
+    ## 5 Melbourne 2020             1622
+    ## 6 Melbourne 2020             1622
+
+![](handle_NA_files/figure-gfm/outliers%20in%20facilities-1.png)<!-- -->
+
+``` r
+# Total Facilities in City of Melbourne during 2012-2022 
+city_of_melbourne %>%
+  group_by(Suburb, Year) %>%
+  summarise(sum_facilities = sum(Total_Facilities)) %>%
+  ggplot() +
+  geom_line(aes(x=Year, y=sum_facilities, colour = Suburb))
+```
+
+![](handle_NA_files/figure-gfm/line%20chart-1.png)<!-- -->
+
+``` r
+par(mfrow = c(2,2))
+
+# original total facilities
+hist(city_of_melbourne$Total_Facilities, main = "Total Facilities") 
+qqnorm(city_of_melbourne$Total_Facilities)
+qqline(city_of_melbourne$Total_Facilities)
+
+# base e log transformation
+log_facilities <-log(city_of_melbourne$Total_Facilities)
+hist(log_facilities, main = "Log Transformation \nof Total Facilities")
+qqnorm(log_facilities)
+qqline(log_facilities)
+```
+
+![](handle_NA_files/figure-gfm/transform%20Facilities-1.png)<!-- -->
+
+``` r
+# square root transformation
+sqrt_facilities <- sqrt(city_of_melbourne$Total_Facilities)
+hist(sqrt_facilities, main = "Squareroot Transformation \nof Total Facilities")
+qqnorm(sqrt_facilities)
+qqline(sqrt_facilities)
+
+
+# Box-Cox transformation
+boxcox_facilities <- BoxCox(city_of_melbourne$Total_Facilities, lambda = "auto")
+hist(boxcox_facilities, main = "Box-Cox Transformation \nof Total Facilities")
+qqnorm(boxcox_facilities)
+qqline(boxcox_facilities)
+```
+
+![](handle_NA_files/figure-gfm/transform%20Facilities-2.png)<!-- -->
+
+#### Neighborhood_Safety and Public_Trans_Safety
+
+``` r
+city_of_melbourne %>%
+  ggplot(aes(Neighborhood_Safety, col = Day_or_Night)) +
+  geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](handle_NA_files/figure-gfm/Neighborhood_Safety%20and%20Public_Trans_Safety-1.png)<!-- -->
+
+``` r
+city_of_melbourne %>%
+  ggplot(aes(Public_Trans_Safety, col = Day_or_Night)) +
+  geom_histogram()
+```
+
+    ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+![](handle_NA_files/figure-gfm/Neighborhood_Safety%20and%20Public_Trans_Safety-2.png)<!-- -->
+
+``` r
+boxplot(city_of_melbourne$Neighborhood_Safety, horizontal = TRUE,
+        main = "Perception of Safety in Neighborhood")
+```
+
+![](handle_NA_files/figure-gfm/Neighborhood_Safety%20and%20Public_Trans_Safety-3.png)<!-- -->
+
+``` r
+boxplot(city_of_melbourne$Public_Trans_Safety, horizontal = TRUE,
+        main = "Perception of Safety on Public Transport")
+```
+
+![](handle_NA_files/figure-gfm/Neighborhood_Safety%20and%20Public_Trans_Safety-4.png)<!-- -->
+
+#### Bivariate outliers
+
+``` r
+ggplot(city_of_melbourne,
+       aes(Neighborhood_Safety, Public_Trans_Safety , colour= Day_or_Night, palette(hsv))) +
+  geom_point(size = 3, alpha=0.5)
+```
+
+![](handle_NA_files/figure-gfm/bivariate%20outliers-1.png)<!-- -->
+
+``` r
+city_of_melbourne %>%
+  filter(Neighborhood_Safety < 40)
+```
+
+    ##    X    Suburb Year Day_or_Night Neighborhood_Safety Public_Trans_Safety
+    ## 1 46 Parkville 2019        Night                36.9                49.5
+    ##   Cafes_Restaurants Takeaway_Food Median_Price Total_Facilities
+    ## 1                52            17      1480000               69
