@@ -1,5 +1,4 @@
-# City_Of_Melbourne
-R project that explores pricing, safety perceptions and facilities in all suburbs that belong to City of Melbourne, Victoria.
+# R project that explores pricing, safety perceptions and facilities in all suburbs that belong to City of Melbourne, Victoria.
 
 Melbourne is the capital city of Victoria, and the second-largest city in Australia. 
 The municipality  of Melbourne is around 37 km² and includes metropolitan Melbourne’s innermost suburbs, including the CBD area (City of Melbourne, 2022).
